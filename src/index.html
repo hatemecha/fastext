@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FasText</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script type="importmap">
+    {
+        "imports": {
+            "@tauri-apps/api/": "../node_modules/@tauri-apps/api/",
+            "@tauri-apps/api/tauri": "../node_modules/@tauri-apps/api/tauri.js"
+        }
+    }
+    </script>
+</head>
+<body>
+    <div id="toolbar">
+        <span id="newBtn" class="toolbar-item">Nuevo</span>
+        <span class="toolbar-separator">|</span>
+        <span id="openBtn" class="toolbar-item">Abrir</span>
+        <span class="toolbar-separator">|</span>
+        <span id="saveBtn" class="toolbar-item">Guardar</span>
+        <span class="toolbar-separator">|</span>
+        <span id="autosaveBtn" class="toolbar-item" title="Autoguardado desactivado">Autoguardado: off</span>
+        <span class="toolbar-separator">|</span>
+        <span id="configBtn" class="toolbar-item">Configuración</span>
+    </div>
+    <textarea id="editor" placeholder="Escribe aquí..." autofocus spellcheck="false"></textarea>
+    
+    <div id="modal-overlay" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2 id="modal-title" class="modal-title"></h2>
+            </div>
+            <div class="modal-body">
+                <p id="modal-message" class="modal-message"></p>
+            </div>
+            <div class="modal-footer">
+                <button id="modal-cancel" class="modal-btn modal-btn-cancel">Cancelar</button>
+                <button id="modal-confirm" class="modal-btn modal-btn-confirm">Aceptar</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="quick-search" class="quick-search-overlay">
+        <div class="quick-search-container">
+            <input type="text" id="quick-search-input" class="quick-search-input" placeholder="Buscar pestaña..." autocomplete="off">
+            <div id="quick-search-results" class="quick-search-results"></div>
+        </div>
+    </div>
+    
+    <div id="status-bar" class="status-bar">
+        <span id="status-line-col" class="status-item">Ln 1, Col 1</span>
+        <span class="status-separator">|</span>
+        <span id="status-char-count" class="status-item">0 caracteres</span>
+        <span class="status-separator">|</span>
+        <span id="status-format" class="status-item">Texto sin formato</span>
+        <span class="status-separator">|</span>
+        <span id="status-path" class="status-item status-path"></span>
+    </div>
+    
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

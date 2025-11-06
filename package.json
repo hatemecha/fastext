@@ -1,0 +1,19 @@
+{
+  "name": "fastext",
+  "version": "1.0.0",
+  "description": "Editor de texto minimalista y de alto rendimiento",
+  "type": "module",
+  "license": "MIT",
+  "author": "Gabriel Romero",
+  "scripts": {
+    "tauri": "tauri",
+    "dev": "tauri dev",
+    "build": "tauri build"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "1.5"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^1.6.0"
+  }
+}
