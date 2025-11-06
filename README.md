@@ -44,41 +44,7 @@ npm run build
 
 Los ejecutables se generarán en `src-tauri/target/release/`.
 
-## 📦 Estructura del Proyecto
 
-```
-fastext/
-├── src/                 # Frontend (JavaScript)
-│   ├── index.html
-│   ├── css/
-│   │   └── styles.css
-│   └── js/
-│       ├── main.js
-│       ├── editor.js
-│       ├── file-manager.js
-│       ├── tab-manager.js
-│       ├── settings-manager.js
-│       ├── config-manager.js
-│       ├── theme-manager.js
-│       ├── status-bar.js
-│       ├── window-manager.js
-│       ├── dialog-helper.js
-│       └── tauri-loader.js
-├── src-tauri/           # Backend (Rust)
-│   ├── src/
-│   │   ├── main.rs
-│   │   ├── commands/
-│   │   │   └── file_commands.rs
-│   │   ├── dialog/
-│   │   │   └── mod.rs
-│   │   ├── file_ops/
-│   │   │   └── mod.rs
-│   │   └── constants.rs
-│   ├── Cargo.toml
-│   └── tauri.conf.json
-├── LICENSE
-└── README.md
-```
 
 ## 🛠️ Tecnologías
 
@@ -139,12 +105,6 @@ Las contribuciones son bienvenidas. Por favor:
 4. Push a la rama (`git push origin feature/AmazingFeature`)
 5. Abre un Pull Request
 
-## 👤 Autor
 
-**Gabriel Romero**
 
-## 🙏 Agradecimientos
 
-- [Tauri](https://tauri.app/) - Framework para aplicaciones de escritorio
-- [Rust](https://www.rust-lang.org/) - Lenguaje de programación
-- Todas las fuentes incluidas (Fira Code, Source Code Pro, JetBrains Mono, MesloLGS NF)
