@@ -33,7 +33,8 @@
       "active": true,
       "targets": [
         "msi",
-        "nsis"
+        "nsis",
+        "updater"
       ],
       "identifier": "com.fastext.app",
       "icon": [

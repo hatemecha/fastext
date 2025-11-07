@@ -155,8 +155,8 @@ export class ConfigManager {
         })
     }
 
-    show() {
-        this.loadConfig()
+    async show() {
+        await this.loadConfig()
         this.renderShortcuts()
         this.resetUpdateUI()
         this.overlay.classList.add('show')
@@ -186,7 +186,7 @@ export class ConfigManager {
         document.body.removeAttribute('data-config-open')
     }
 
-    loadConfig() {
+    async loadConfig() {
         const theme = document.getElementById('theme')
         const fontFamily = document.getElementById('font-family')
         const fontSize = document.getElementById('font-size')
@@ -212,7 +212,17 @@ export class ConfigManager {
         }
 
         if (version) {
-            version.textContent = '1.0.0'
+            try {
+                if (window.__TAURI_INVOKE__) {
+                    const appVersion = await window.__TAURI_INVOKE__('get_app_version')
+                    version.textContent = appVersion
+                } else {
+                    version.textContent = '1.0.2'
+                }
+            } catch (error) {
+                console.error('Error al obtener la versión:', error)
+                version.textContent = '1.0.2'
+            }
         }
     }
 
@@ -490,7 +500,17 @@ export class ConfigManager {
             console.error('Error al buscar actualizaciones:', error)
             updateBtn.textContent = 'Buscar actualizaciones'
             updateBtn.disabled = false
-            updateStatus.textContent = 'Error al buscar actualizaciones'
+            
+            let errorMessage = 'Error al buscar actualizaciones'
+            if (error.message && error.message.includes('Could not fetch')) {
+                errorMessage = 'No se pudo conectar al servidor de actualizaciones. Verifica tu conexión a internet.'
+            } else if (error.message && error.message.includes('release JSON')) {
+                errorMessage = 'No hay actualizaciones disponibles en este momento.'
+            } else if (error.message) {
+                errorMessage = `Error: ${error.message}`
+            }
+            
+            updateStatus.textContent = errorMessage
             updateStatus.classList.remove('active', 'available')
             this.pendingUpdate = null
         }
