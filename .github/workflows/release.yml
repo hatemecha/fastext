@@ -50,4 +50,5 @@ jobs:
           releaseName: 'FasText ${{ github.ref_name }}'
           releaseBody: 'Ver las notas de la versión en GitHub'
           releaseDraft: false
-          releasePrerelease: false
+          prerelease: false
+          includeUpdaterJson: true
