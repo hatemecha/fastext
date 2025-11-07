@@ -10,6 +10,7 @@ mod file_ops;
 
 use tauri::Manager;
 use commands::file_commands::{open_file, save_file_direct, save_file_as, rename_file, show_confirm_dialog};
+use commands::updater_commands::{check_update, install_update};
 
 fn main() {
     tauri::Builder::default()
@@ -24,6 +25,8 @@ fn main() {
             save_file_as,
             rename_file,
             show_confirm_dialog,
+            check_update,
+            install_update,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
