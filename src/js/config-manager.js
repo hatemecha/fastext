@@ -8,6 +8,7 @@ export class ConfigManager {
         this.themeManager = new ThemeManager()
         this.overlay = null
         this.editingShortcut = null
+        this.pendingUpdate = null
         this.setupModal()
     }
 
@@ -49,6 +50,13 @@ export class ConfigManager {
                         </div>
                     </div>
                     <div class="config-section">
+                        <h3 class="config-section-title">Actualizaciones</h3>
+                        <div class="config-field update-field">
+                            <span id="update-status" class="update-status-text"></span>
+                            <button id="update-btn" class="config-btn config-btn-secondary">Buscar actualizaciones</button>
+                        </div>
+                    </div>
+                    <div class="config-section">
                         <h3 class="config-section-title">Información</h3>
                         <div class="config-info">
                             <p><strong>Versión:</strong> <span id="app-version">0.1.0</span></p>
@@ -71,11 +79,16 @@ export class ConfigManager {
         const closeBtn = document.getElementById('config-close')
         const saveBtn = document.getElementById('config-save')
         const resetBtn = document.getElementById('config-reset')
+        const updateBtn = document.getElementById('update-btn')
         const theme = document.getElementById('theme')
         const fontFamily = document.getElementById('font-family')
         const fontSize = document.getElementById('font-size')
 
         closeBtn.addEventListener('click', () => this.hide())
+        
+        if (updateBtn) {
+            updateBtn.addEventListener('click', () => this.handleUpdateClick())
+        }
         this.overlay.addEventListener('click', (e) => {
             if (e.target === this.overlay) {
                 this.hide()
@@ -145,8 +158,26 @@ export class ConfigManager {
     show() {
         this.loadConfig()
         this.renderShortcuts()
+        this.resetUpdateUI()
         this.overlay.classList.add('show')
         document.body.setAttribute('data-config-open', 'true')
+    }
+
+    resetUpdateUI() {
+        const updateBtn = document.getElementById('update-btn')
+        const updateStatus = document.getElementById('update-status')
+        
+        if (updateBtn) {
+            updateBtn.textContent = 'Buscar actualizaciones'
+            updateBtn.disabled = false
+        }
+        
+        if (updateStatus) {
+            updateStatus.textContent = ''
+            updateStatus.classList.remove('active', 'available')
+        }
+        
+        this.pendingUpdate = null
     }
 
     hide() {
@@ -407,6 +438,92 @@ export class ConfigManager {
     formatFontFamily(fontFamily) {
         if (!fontFamily) return 'monospace'
         return `'${fontFamily}', monospace`
+    }
+
+    async handleUpdateClick() {
+        const updateBtn = document.getElementById('update-btn')
+        const updateStatus = document.getElementById('update-status')
+        
+        if (!updateBtn || !updateStatus) return
+
+        const buttonText = updateBtn.textContent.trim()
+        
+        if (buttonText === 'Actualizar') {
+            await this.installUpdate()
+        } else {
+            await this.checkForUpdates()
+        }
+    }
+
+    async checkForUpdates() {
+        const updateBtn = document.getElementById('update-btn')
+        const updateStatus = document.getElementById('update-status')
+        
+        if (!updateBtn || !updateStatus) return
+
+        try {
+            updateBtn.disabled = true
+            updateBtn.textContent = 'Buscando...'
+            updateStatus.textContent = ''
+            updateStatus.classList.remove('active', 'available')
+
+            if (!window.__TAURI_INVOKE__) {
+                throw new Error('Tauri API no disponible')
+            }
+
+            const result = await window.__TAURI_INVOKE__('check_update')
+
+            if (result.available) {
+                updateBtn.textContent = 'Actualizar'
+                updateBtn.disabled = false
+                updateStatus.textContent = 'Actualizaciones disponibles'
+                updateStatus.classList.add('active', 'available')
+                this.pendingUpdate = result
+            } else {
+                updateBtn.textContent = 'Buscar actualizaciones'
+                updateBtn.disabled = false
+                updateStatus.textContent = 'No hay actualizaciones'
+                updateStatus.classList.remove('active', 'available')
+                this.pendingUpdate = null
+            }
+        } catch (error) {
+            console.error('Error al buscar actualizaciones:', error)
+            updateBtn.textContent = 'Buscar actualizaciones'
+            updateBtn.disabled = false
+            updateStatus.textContent = 'Error al buscar actualizaciones'
+            updateStatus.classList.remove('active', 'available')
+            this.pendingUpdate = null
+        }
+    }
+
+    async installUpdate() {
+        const updateBtn = document.getElementById('update-btn')
+        const updateStatus = document.getElementById('update-status')
+        
+        if (!updateBtn || !updateStatus) return
+
+        try {
+            updateBtn.disabled = true
+            updateBtn.textContent = 'Instalando...'
+            updateStatus.textContent = 'Instalando actualización...'
+
+            if (!window.__TAURI_INVOKE__) {
+                throw new Error('Tauri API no disponible')
+            }
+
+            await window.__TAURI_INVOKE__('install_update')
+
+            updateStatus.textContent = 'Actualización instalada. Reinicia la aplicación.'
+            updateBtn.textContent = 'Buscar actualizaciones'
+            updateBtn.disabled = false
+            this.pendingUpdate = null
+        } catch (error) {
+            console.error('Error al instalar actualización:', error)
+            updateBtn.textContent = 'Actualizar'
+            updateBtn.disabled = false
+            updateStatus.textContent = 'Error al instalar actualización: ' + error.message
+            updateStatus.classList.remove('active')
+        }
     }
 }
 

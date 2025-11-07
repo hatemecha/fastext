@@ -879,3 +879,31 @@ body {
     border-color: var(--theme-toolbarHover);
 }
 
+.update-field {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    justify-content: space-between;
+}
+
+.update-status-text {
+    flex: 1;
+    color: var(--theme-modalSecondary);
+    font-size: 14px;
+    font-family: var(--editor-font-family);
+    transition: color 0.2s;
+}
+
+.update-status-text.active {
+    color: var(--theme-toolbarActive);
+}
+
+.update-status-text.available {
+    color: var(--theme-toolbarActive);
+}
+
+#update-btn {
+    min-width: 160px;
+    flex-shrink: 0;
+}
+
