@@ -6,7 +6,6 @@ Editor de texto minimalista y de alto rendimiento construido con Tauri y Rust. D
 
 - **Alto rendimiento**: Optimizado para manejar archivos grandes con eficiencia
 - **Interfaz minimalista**: Diseño limpio sin distracciones
-- **Multiplataforma**: Windows, macOS y Linux
 - **Múltiples pestañas**: Gestiona varios archivos simultáneamente
 - **Temas personalizables**: Varios temas oscuros incluidos
 - **Fuentes configurables**: Soporte para fuentes monoespaciadas populares
