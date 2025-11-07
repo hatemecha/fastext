@@ -1,6 +1,6 @@
 [package]
 name = "fastext"
-version = "1.0.2"
+version = "1.0.3"
 description = "Editor de texto minimalista y de alto rendimiento"
 authors = ["Gabriel Romero"]
 license = "MIT"
