@@ -17,6 +17,8 @@ fn main() {
         .setup(|app| {
             let window = app.get_window("main").unwrap();
             window.set_title("FasText").unwrap();
+            window.show().unwrap();
+            window.set_focus().unwrap();
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
