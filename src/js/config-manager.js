@@ -481,13 +481,14 @@ export class ConfigManager {
             const releaseInfo = await this.fetchLatestReleaseInfo()
 
             if (!releaseInfo.version || !releaseInfo.downloadUrl) {
-                throw new Error('El release más reciente no tiene información suficiente')
+                throw new Error('El release más reciente no tiene instalador disponible')
             }
 
             if (this.isNewerVersion(releaseInfo.version, currentVersion)) {
                 updateBtn.textContent = 'Actualizar'
                 updateBtn.disabled = false
-                updateStatus.textContent = `v${releaseInfo.version} disponible`
+                const assetLabel = releaseInfo.assetType === 'msi' ? 'instalador MSI' : 'instalador disponible'
+                updateStatus.textContent = `v${releaseInfo.version} disponible (${assetLabel})`
                 updateStatus.classList.add('active', 'available')
                 this.pendingUpdate = releaseInfo
             } else {
@@ -557,14 +558,19 @@ export class ConfigManager {
 
             const downloadUrl = this.pendingUpdate.downloadUrl
 
-            // Intentar abrir con Tauri shell, fallback a window.open
-            if (window.__TAURI__?.shell?.open) {
+            if (window.__TAURI_INVOKE__) {
+                await window.__TAURI_INVOKE__('open_url_in_browser', { url: downloadUrl })
+            } else if (window.__TAURI__?.shell?.open) {
                 await window.__TAURI__.shell.open(downloadUrl)
             } else {
                 window.open(downloadUrl, '_blank', 'noopener,noreferrer')
             }
 
-            updateStatus.textContent = 'Descarga iniciada. Instala y reinicia FasText.'
+            const message =
+                this.pendingUpdate.assetType === 'msi'
+                    ? 'Descarga iniciada. Instala el MSI y reinicia FasText.'
+                    : 'Descarga iniciada. Instala y reinicia FasText.'
+            updateStatus.textContent = message
             updateBtn.textContent = 'Buscar actualizaciones'
             updateBtn.disabled = false
             this.pendingUpdate = null
@@ -609,20 +615,42 @@ export class ConfigManager {
         const version = tagName.replace(/^v/i, '')
         const assets = Array.isArray(release.assets) ? release.assets : []
 
-        const preferredAsset = assets.find((asset) =>
-            /_x64-setup_windows\.exe$/i.test(asset.name || '')
+        const preferredMsi = assets.find((asset) =>
+            /_x64_en-us\.msi$/i.test(asset.name || '')
         )
 
-        const executableAsset =
-            preferredAsset ||
-            assets.find((asset) => /\.exe$/i.test(asset.name || '')) ||
-            null
+        const anyMsi = preferredMsi || assets.find((asset) => /\.msi$/i.test(asset.name || '')) || null
+        const fallbackExePreferred = assets.find((asset) =>
+            /_x64-setup_windows\.exe$/i.test(asset.name || '')
+        )
+        const fallbackExe = fallbackExePreferred || assets.find((asset) => /\.exe$/i.test(asset.name || '')) || null
 
-        const downloadUrl = executableAsset?.browser_download_url || null
+        const selectedAsset = anyMsi || fallbackExe
+
+        if (!selectedAsset) {
+            return {
+                version,
+                downloadUrl: null,
+                assetName: '',
+                assetType: null,
+                notes: typeof release.body === 'string' ? release.body.trim() : '',
+                publishedAt: release.published_at || null,
+            }
+        }
+
+        if (!anyMsi && fallbackExe) {
+            console.warn('No se encontró instalador .msi en el release más reciente; se usará el .exe.')
+        }
+
+        const downloadUrl = selectedAsset.browser_download_url || null
+        const assetName = selectedAsset.name || ''
+        const assetType = assetName.toLowerCase().endsWith('.msi') ? 'msi' : 'exe'
 
         return {
             version,
             downloadUrl,
+            assetName,
+            assetType,
             notes: typeof release.body === 'string' ? release.body.trim() : '',
             publishedAt: release.published_at || null,
         }
