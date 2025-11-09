@@ -10,7 +10,6 @@ mod file_ops;
 
 use tauri::Manager;
 use commands::file_commands::{open_file, save_file_direct, save_file_as, rename_file, show_confirm_dialog};
-use commands::updater_commands::{check_update, install_update};
 use commands::app_commands::get_app_version;
 
 fn main() {
@@ -28,8 +27,6 @@ fn main() {
             save_file_as,
             rename_file,
             show_confirm_dialog,
-            check_update,
-            install_update,
             get_app_version,
         ])
         .run(tauri::generate_context!())

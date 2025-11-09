@@ -477,18 +477,19 @@ export class ConfigManager {
             updateStatus.textContent = ''
             updateStatus.classList.remove('active', 'available')
 
-            if (!window.__TAURI_INVOKE__) {
-                throw new Error('Tauri API no disponible')
+            const currentVersion = await this.resolveCurrentVersion()
+            const releaseInfo = await this.fetchLatestReleaseInfo()
+
+            if (!releaseInfo.version || !releaseInfo.downloadUrl) {
+                throw new Error('El release más reciente no tiene información suficiente')
             }
 
-            const result = await window.__TAURI_INVOKE__('check_update')
-
-            if (result.available) {
+            if (this.isNewerVersion(releaseInfo.version, currentVersion)) {
                 updateBtn.textContent = 'Actualizar'
                 updateBtn.disabled = false
-                updateStatus.textContent = 'Actualizaciones disponibles'
+                updateStatus.textContent = `v${releaseInfo.version} disponible`
                 updateStatus.classList.add('active', 'available')
-                this.pendingUpdate = result
+                this.pendingUpdate = releaseInfo
             } else {
                 updateBtn.textContent = 'Buscar actualizaciones'
                 updateBtn.disabled = false
@@ -502,12 +503,13 @@ export class ConfigManager {
             updateBtn.disabled = false
             
             let errorMessage = 'Error al buscar actualizaciones'
-            if (error.message && error.message.includes('Could not fetch')) {
-                errorMessage = 'No se pudo conectar al servidor de actualizaciones. Verifica tu conexión a internet.'
-            } else if (error.message && error.message.includes('release JSON')) {
-                errorMessage = 'No hay actualizaciones disponibles en este momento.'
-            } else if (error.message) {
-                errorMessage = `Error: ${error.message}`
+            const message = error.message || ''
+            if (message.includes('Failed to fetch') || message.includes('NetworkError')) {
+                errorMessage = 'Sin conexión o CORS bloqueado'
+            } else if (message.includes('HTTP')) {
+                errorMessage = 'No hay releases disponibles'
+            } else if (message) {
+                errorMessage = message
             }
             
             updateStatus.textContent = errorMessage
@@ -516,33 +518,113 @@ export class ConfigManager {
         }
     }
 
+    isNewerVersion(remote, current) {
+        if (!remote || !current) return false
+        
+        // Limpiar prefijos 'v' si existen
+        const cleanRemote = remote.replace(/^v/i, '')
+        const cleanCurrent = current.replace(/^v/i, '')
+        
+        const parse = (ver) => ver.split('.').map(n => parseInt(n, 10) || 0)
+        const remoteParts = parse(cleanRemote)
+        const currentParts = parse(cleanCurrent)
+        
+        for (let i = 0; i < Math.max(remoteParts.length, currentParts.length); i++) {
+            const r = remoteParts[i] || 0
+            const c = currentParts[i] || 0
+            if (r > c) return true
+            if (r < c) return false
+        }
+        
+        return false
+    }
+
     async installUpdate() {
         const updateBtn = document.getElementById('update-btn')
         const updateStatus = document.getElementById('update-status')
         
         if (!updateBtn || !updateStatus) return
 
+        if (!this.pendingUpdate || !this.pendingUpdate.downloadUrl) {
+            updateStatus.textContent = 'No hay actualización pendiente'
+            return
+        }
+
         try {
             updateBtn.disabled = true
-            updateBtn.textContent = 'Instalando...'
-            updateStatus.textContent = 'Instalando actualización...'
+            updateBtn.textContent = 'Abriendo...'
+            updateStatus.textContent = 'Abriendo descarga...'
 
-            if (!window.__TAURI_INVOKE__) {
-                throw new Error('Tauri API no disponible')
+            const downloadUrl = this.pendingUpdate.downloadUrl
+
+            // Intentar abrir con Tauri shell, fallback a window.open
+            if (window.__TAURI__?.shell?.open) {
+                await window.__TAURI__.shell.open(downloadUrl)
+            } else {
+                window.open(downloadUrl, '_blank', 'noopener,noreferrer')
             }
 
-            await window.__TAURI_INVOKE__('install_update')
-
-            updateStatus.textContent = 'Actualización instalada. Reinicia la aplicación.'
+            updateStatus.textContent = 'Descarga iniciada. Instala y reinicia FasText.'
             updateBtn.textContent = 'Buscar actualizaciones'
             updateBtn.disabled = false
             this.pendingUpdate = null
         } catch (error) {
-            console.error('Error al instalar actualización:', error)
+            console.error('Error al abrir descarga:', error)
             updateBtn.textContent = 'Actualizar'
             updateBtn.disabled = false
-            updateStatus.textContent = 'Error al instalar actualización: ' + error.message
+            updateStatus.textContent = 'Error al abrir descarga: ' + error.message
             updateStatus.classList.remove('active')
+        }
+    }
+
+    async resolveCurrentVersion() {
+        let versionFallback = '1.0.4'
+        try {
+            if (window.__TAURI_INVOKE__) {
+                const version = await window.__TAURI_INVOKE__('get_app_version')
+                if (version) {
+                    versionFallback = version
+                }
+            }
+        } catch (error) {
+            console.warn('No se pudo obtener la versión actual:', error)
+        }
+        return versionFallback
+    }
+
+    async fetchLatestReleaseInfo() {
+        const response = await fetch('https://api.github.com/repos/hatemecha/fastext/releases/latest', {
+            cache: 'no-cache',
+            headers: {
+                Accept: 'application/vnd.github+json',
+            },
+        })
+
+        if (!response.ok) {
+            throw new Error(`No se pudo obtener la información del release (HTTP ${response.status})`)
+        }
+
+        const release = await response.json()
+        const tagName = release.tag_name || release.name || ''
+        const version = tagName.replace(/^v/i, '')
+        const assets = Array.isArray(release.assets) ? release.assets : []
+
+        const preferredAsset = assets.find((asset) =>
+            /_x64-setup_windows\.exe$/i.test(asset.name || '')
+        )
+
+        const executableAsset =
+            preferredAsset ||
+            assets.find((asset) => /\.exe$/i.test(asset.name || '')) ||
+            null
+
+        const downloadUrl = executableAsset?.browser_download_url || null
+
+        return {
+            version,
+            downloadUrl,
+            notes: typeof release.body === 'string' ? release.body.trim() : '',
+            publishedAt: release.published_at || null,
         }
     }
 }
