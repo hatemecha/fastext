@@ -13,3 +13,4 @@ pub fn open_url_in_browser(app: tauri::AppHandle, url: String) -> Result<(), Str
     tauri::api::shell::open(&app.shell_scope(), url, None).map_err(|err| err.to_string())
 }
 
+
