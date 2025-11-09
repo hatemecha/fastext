@@ -277,13 +277,27 @@ body {
     border: none;
     padding: 8px;
     cursor: pointer;
-    font-size: 14px;
     border-bottom: 1px solid var(--theme-border);
     transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 #toggle-tabs:hover {
     background-color: var(--theme-tabHover);
+}
+
+#toggle-tabs .toggle-tabs-icon {
+    display: block;
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
+    transition: transform 0.2s;
+}
+
+#tabs-panel.collapsed #toggle-tabs .toggle-tabs-icon {
+    transform: rotate(180deg);
 }
 
 .sort-controls {
@@ -406,14 +420,190 @@ body {
 #editor-wrapper {
     flex: 1;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     overflow: hidden;
     min-width: 0;
+    position: relative;
 }
 
 #editor {
     flex: 1;
     min-width: 0;
+}
+
+#editor-wrapper.preview-reading #editor {
+    display: none;
+}
+
+#editor-wrapper.preview-reading #markdown-preview {
+    display: block;
+    flex: 1;
+}
+
+#markdown-preview {
+    flex: 1;
+    min-width: 0;
+    display: none;
+    padding: 20px;
+    background-color: var(--theme-editorBg);
+    color: var(--theme-editorText);
+    overflow-y: auto;
+    overflow-x: hidden;
+    line-height: 1.6;
+    font-family: var(--editor-font-family);
+    word-break: break-word;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+#markdown-preview h1,
+#markdown-preview h2,
+#markdown-preview h3,
+#markdown-preview h4,
+#markdown-preview h5,
+#markdown-preview h6 {
+    margin: 0 0 12px 0;
+    font-weight: 600;
+}
+
+#markdown-preview p,
+#markdown-preview ul,
+#markdown-preview ol,
+#markdown-preview pre {
+    margin-bottom: 16px;
+}
+
+#markdown-preview pre {
+    background-color: rgba(255, 255, 255, 0.05);
+    padding: 12px 16px;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-family: var(--editor-font-family);
+}
+
+#markdown-preview code {
+    background-color: rgba(255, 255, 255, 0.05);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: var(--editor-font-family);
+}
+
+#markdown-preview a {
+    color: var(--theme-buttonPrimary);
+    text-decoration: none;
+}
+
+#markdown-preview a:hover {
+    text-decoration: underline;
+}
+
+#markdown-preview blockquote {
+    border-left: 3px solid var(--theme-toolbarHover);
+    padding-left: 12px;
+    color: var(--theme-toolbarHover);
+    margin: 0 0 16px 0;
+}
+
+.markdown-sidebar-resizer {
+    width: 0;
+    background-color: transparent;
+    cursor: col-resize;
+    transition: width 0.3s, background-color 0.2s;
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.markdown-sidebar-resizer.active {
+    width: 4px;
+}
+
+#editor-container:hover .markdown-sidebar-resizer.active {
+    background-color: rgba(42, 42, 42, 0.5);
+}
+
+#editor-container:hover .markdown-sidebar-resizer.active:hover {
+    background-color: #ffffff;
+}
+
+#markdown-sidebar {
+    width: 0;
+    min-width: 0;
+    background-color: var(--theme-tabBg);
+    border-left: none;
+    display: flex;
+    flex-direction: column;
+    transition: width 0.3s, min-width 0.3s, border-color 0.3s;
+    max-width: 50%;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+#markdown-sidebar.active {
+    width: 300px;
+    min-width: 200px;
+    border-left: 1px solid var(--theme-border);
+}
+
+.markdown-sidebar-preview {
+    flex: 1;
+    padding: 20px;
+    background-color: var(--theme-editorBg);
+    color: var(--theme-editorText);
+    overflow-y: auto;
+    overflow-x: hidden;
+    line-height: 1.6;
+    font-family: var(--editor-font-family);
+    word-break: break-word;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.markdown-sidebar-preview h1,
+.markdown-sidebar-preview h2,
+.markdown-sidebar-preview h3,
+.markdown-sidebar-preview h4,
+.markdown-sidebar-preview h5,
+.markdown-sidebar-preview h6 {
+    margin: 0 0 12px 0;
+    font-weight: 600;
+}
+
+.markdown-sidebar-preview p,
+.markdown-sidebar-preview ul,
+.markdown-sidebar-preview ol,
+.markdown-sidebar-preview pre {
+    margin-bottom: 16px;
+}
+
+.markdown-sidebar-preview pre {
+    background-color: rgba(255, 255, 255, 0.05);
+    padding: 12px 16px;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-family: var(--editor-font-family);
+}
+
+.markdown-sidebar-preview code {
+    background-color: rgba(255, 255, 255, 0.05);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: var(--editor-font-family);
+}
+
+.markdown-sidebar-preview a {
+    color: var(--theme-buttonPrimary);
+    text-decoration: none;
+}
+
+.markdown-sidebar-preview a:hover {
+    text-decoration: underline;
+}
+
+.markdown-sidebar-preview blockquote {
+    border-left: 3px solid var(--theme-toolbarHover);
+    padding-left: 12px;
+    color: var(--theme-toolbarHover);
+    margin: 0 0 16px 0;
 }
 
 #status-bar {
@@ -450,6 +640,44 @@ body {
     text-overflow: ellipsis;
     white-space: nowrap;
     max-width: 400px;
+}
+
+.status-markdown {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    color: var(--theme-toolbarText);
+    cursor: pointer;
+    font-family: var(--editor-font-family);
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s, color 0.2s, opacity 0.2s;
+}
+
+.status-markdown:hover:not([disabled]) {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+.status-markdown:focus-visible {
+    outline: 1px solid var(--theme-buttonPrimary);
+    outline-offset: 2px;
+}
+
+.status-markdown[disabled] {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.status-markdown i {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
 }
 
 .modal-overlay {

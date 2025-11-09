@@ -13,6 +13,8 @@
         }
     }
     </script>
+    <script src="lib/markdown-it.js"></script>
+    <script src="lib/fontawesome-all.min.js"></script>
 </head>
 <body>
     <div id="toolbar">
@@ -56,6 +58,11 @@
         <span id="status-char-count" class="status-item">0 caracteres</span>
         <span class="status-separator">|</span>
         <span id="status-format" class="status-item">Texto sin formato</span>
+        <span class="status-separator">|</span>
+        <button id="status-markdown-toggle" class="status-item status-markdown" type="button" title="Markdown: off" aria-pressed="false">
+            <i class="fa-brands fa-markdown"></i>
+            <span id="status-markdown-text">Markdown: off</span>
+        </button>
         <span class="status-separator">|</span>
         <span id="status-path" class="status-item status-path"></span>
     </div>

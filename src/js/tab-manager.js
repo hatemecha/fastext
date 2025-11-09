@@ -12,6 +12,8 @@ export class TabManager {
         this.tabsPanel = null
         this.tabsList = null
         this.isCollapsed = false
+        this.toggleBtn = null
+        this.toggleIcon = null
         this.shortcutHandler = null
         this.savedWidth = 200
         this.tabElements = new Map()
@@ -48,10 +50,13 @@ export class TabManager {
         this.tabsPanel.className = 'expanded'
 
         // Botón de colapsar/expandir
-        const toggleBtn = document.createElement('button')
-        toggleBtn.id = 'toggle-tabs'
-        toggleBtn.innerHTML = '&lt;'
-        toggleBtn.addEventListener('click', () => this.togglePanel())
+        this.toggleBtn = document.createElement('button')
+        this.toggleBtn.id = 'toggle-tabs'
+        this.toggleBtn.type = 'button'
+        this.toggleBtn.addEventListener('click', () => this.togglePanel())
+        this.toggleIcon = this.createToggleIcon()
+        this.toggleBtn.appendChild(this.toggleIcon)
+        this.updateToggleButtonLabels()
 
         // Controles de ordenamiento
         const sortControls = document.createElement('div')
@@ -68,7 +73,7 @@ export class TabManager {
         this.tabsList = document.createElement('div')
         this.tabsList.id = 'tabs-list'
 
-        this.tabsPanel.appendChild(toggleBtn)
+        this.tabsPanel.appendChild(this.toggleBtn)
         this.tabsPanel.appendChild(sortControls)
         this.tabsPanel.appendChild(this.tabsList)
 
@@ -143,6 +148,8 @@ export class TabManager {
                 }
             }
         }
+
+        document.dispatchEvent(new CustomEvent('tab-changed', { detail: { tabId } }))
     }
 
     saveCurrentTabContent() {
@@ -231,6 +238,24 @@ export class TabManager {
         } else {
             this.collapsePanel()
         }
+    }
+
+    createToggleIcon() {
+        const svgNS = 'http://www.w3.org/2000/svg'
+        const svg = document.createElementNS(svgNS, 'svg')
+        svg.setAttribute('viewBox', '0 0 320 512')
+        svg.classList.add('toggle-tabs-icon')
+        const path = document.createElementNS(svgNS, 'path')
+        path.setAttribute('d', 'M34.52 239.03 228.69 44.86a24 24 0 0 1 33.94 0l22.63 22.63a24 24 0 0 1 .04 33.9L188.12 256l96.14 96.19a24 24 0 0 1-.04 33.9l-22.63 22.63a24 24 0 0 1-33.94 0L34.52 272.97a24 24 0 0 1 0-33.94Z')
+        svg.appendChild(path)
+        return svg
+    }
+
+    updateToggleButtonLabels() {
+        if (!this.toggleBtn) return
+        const label = this.isCollapsed ? 'Expandir panel de pestañas' : 'Contraer panel de pestañas'
+        this.toggleBtn.title = label
+        this.toggleBtn.setAttribute('aria-label', label)
     }
 
     renderTabs() {
@@ -612,10 +637,7 @@ export class TabManager {
         this.tabsPanel.classList.add('collapsed')
         // Asegurar que el ancho sea exactamente 50px cuando está colapsado
         this.tabsPanel.style.width = '50px'
-        const toggleBtn = document.getElementById('toggle-tabs')
-        if (toggleBtn) {
-            toggleBtn.innerHTML = '&gt;'
-        }
+        this.updateToggleButtonLabels()
         this.renderTabs()
     }
 
@@ -623,10 +645,7 @@ export class TabManager {
         if (!this.isCollapsed) return
         this.isCollapsed = false
         this.tabsPanel.classList.remove('collapsed')
-        const toggleBtn = document.getElementById('toggle-tabs')
-        if (toggleBtn) {
-            toggleBtn.innerHTML = '&lt;'
-        }
+        this.updateToggleButtonLabels()
         // Restaurar el ancho guardado o usar el ancho por defecto
         const widthToRestore = this.savedWidth && this.savedWidth > 50 ? this.savedWidth : 200
         this.tabsPanel.style.width = widthToRestore + 'px'

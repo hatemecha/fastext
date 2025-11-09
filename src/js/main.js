@@ -8,6 +8,7 @@ import { ConfigManager } from './config-manager.js'
 import { showMessage } from './dialog-helper.js'
 import { ThemeManager } from './theme-manager.js'
 import { StatusBar } from './status-bar.js'
+import { MarkdownPreview } from './markdown-preview.js'
 
 class App {
     constructor() {
@@ -21,6 +22,7 @@ class App {
         this.statusBar = null
         this.autosaveTimer = null
         this.shortcutHandler = null
+        this.markdownPreview = null
     }
 
     async init() {
@@ -38,6 +40,18 @@ class App {
         this.editor = new Editor(editorElement)
         this.tabManager = new TabManager(editorElement, this.fileManager, this.settingsManager)
         this.statusBar = new StatusBar(editorElement, this.tabManager)
+        this.markdownPreview = new MarkdownPreview(editorElement, this.tabManager)
+
+        if (this.markdownPreview) {
+            const originalUpdateTabFromFile = this.tabManager.updateTabFromFile.bind(this.tabManager)
+            this.tabManager.updateTabFromFile = async (...args) => {
+                const result = await originalUpdateTabFromFile(...args)
+                requestAnimationFrame(() => {
+                    this.markdownPreview.handleExternalContentChange()
+                })
+                return result
+            }
+        }
         
         this.setupButtons()
         this.setupKeyboardShortcuts()
